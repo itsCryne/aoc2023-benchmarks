@@ -1,0 +1,9 @@
+[alias]
+solve = "run --release -- solve"
+download = "run --release --quiet -- download"
+solve-all = "run --release -- solve-all"
+solve-multiple = "run --release -- solve-multiple"
+initialize = "run --release -- initialize"
+
+[env]
+AOC_YEAR = "2023"

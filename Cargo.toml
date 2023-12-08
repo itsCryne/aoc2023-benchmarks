@@ -1,0 +1,28 @@
+[package]
+name = "advent-of-code-rust-criterion"
+version = "1.0.0"
+edition = "2021"
+authors = ["Paddi <secure@cryne.me>"]
+license = "AGPL-3-only"
+publish = false
+
+[workspace]
+members = ["aoc_macros"]
+
+[lib]
+doctest = false
+
+[[bench]]
+name = "aoc_benchmark"
+harness = false
+
+[dev-dependencies]
+criterion = "0"
+
+[dependencies]
+clap = { version = "4", features = ["derive"] }
+aoc_macros = { path = "aoc_macros" }
+humantime = "2"
+aoc-client = "0"
+
+# Add your own crates here
