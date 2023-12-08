@@ -26,3 +26,5 @@ humantime = "2"
 aoc-client = "0"
 
 # Add your own crates here
+regex = "1.10.2"
+num = "0.4.1"
