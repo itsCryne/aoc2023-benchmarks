@@ -6,6 +6,19 @@ use advent_of_code_rust_criterion::{run_and_print_day, Day, Days};
 use aoc_client::{AocClient, AocResult, PuzzleDay};
 use std::process::exit;
 
+macro_rules! main_fn {
+    ($day:ident) => {
+        format!(
+            r#"fn main() {{
+    let input = include_str!("./data/inputs/day_{}.txt");
+    println!("Part A: \x1b[1m{{}}\x1b[0m", part_a(input).unwrap());
+    println!("Part B: \x1b[1m{{}}\x1b[0m", part_b(input).unwrap());
+}}"#,
+            $day
+        )
+    };
+}
+
 macro_rules! day_content {
     ($day:ident) => {
         format!(
@@ -54,6 +67,7 @@ enum Command {
     SolveAll,
     Initialize { day: Day },
     Download { day: Day },
+    Standalone { day: Day },
 }
 
 fn main() -> AocResult<()> {
@@ -183,6 +197,19 @@ fn main() -> AocResult<()> {
                     }
                 },
             }
+        }
+        Command::Standalone { day } => {
+            let path = format!("src/days/day_{}.rs", day);
+            let mut src = match std::fs::read_to_string(&path) {
+                Err(e) => {
+                    eprintln!("Failed to read {}: {}", path, e);
+                    exit(1)
+                }
+                Ok(content) => content,
+            };
+
+            src.replace_range(src.find("#[cfg(test)]").unwrap().., "");
+            println!("{}\n\n{}", main_fn!(day), src.trim_end());
         }
     }
 
