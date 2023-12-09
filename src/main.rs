@@ -62,12 +62,25 @@ struct AoC {
 
 #[derive(Subcommand)]
 enum Command {
-    Solve { day: Day },
-    SolveMultiple { start: Day, end: Day },
+    Solve {
+        day: Day,
+    },
+    SolveMultiple {
+        start: Day,
+        end: Day,
+    },
     SolveAll,
-    Initialize { day: Day },
-    Download { day: Day },
-    Standalone { day: Day },
+    Initialize {
+        day: Day,
+    },
+    Download {
+        day: Day,
+    },
+    Standalone {
+        day: Day,
+        #[clap(long, short, action)]
+        with_tests: bool,
+    },
 }
 
 fn main() -> AocResult<()> {
@@ -198,7 +211,7 @@ fn main() -> AocResult<()> {
                 },
             }
         }
-        Command::Standalone { day } => {
+        Command::Standalone { day, with_tests } => {
             let path = format!("src/days/day_{}.rs", day);
             let mut src = match std::fs::read_to_string(&path) {
                 Err(e) => {
@@ -207,8 +220,9 @@ fn main() -> AocResult<()> {
                 }
                 Ok(content) => content,
             };
-
-            src.replace_range(src.find("#[cfg(test)]").unwrap().., "");
+            if !with_tests {
+                src.replace_range(src.find("#[cfg(test)]").unwrap().., "");
+            }
             println!("{}\n\n{}", main_fn!(day), src.trim_end());
         }
     }
