@@ -69,7 +69,7 @@ impl TryFrom<char> for Card {
                 None => return Err(ParseCardError::new(c.to_string())),
                 Some(number_card) => {
                     assert!(number_card < 10);
-                    let number_cards = vec![
+                    let number_cards = [
                         Card::Two,
                         Card::Three,
                         Card::Four,
@@ -100,7 +100,7 @@ impl TryFrom<char> for Card2 {
                 None => return Err(ParseCardError::new(c.to_string())),
                 Some(number_card) => {
                     assert!(number_card < 10);
-                    let number_cards = vec![
+                    let number_cards = [
                         Card2::Two,
                         Card2::Three,
                         Card2::Four,
@@ -168,32 +168,19 @@ impl Hand {
             return Strength::OnePair;
         }
 
-        return Strength::HighCard;
+        Strength::HighCard
     }
 }
 
 impl PartialOrd for Hand {
     fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
-        return Some(match self.get_strength().cmp(&other.get_strength()) {
-            Ordering::Less => Ordering::Less,
-            Ordering::Greater => Ordering::Greater,
-            Ordering::Equal => {
-                for (self_card, other_card) in self.cards.iter().zip(other.cards.iter()) {
-                    match self_card.cmp(other_card) {
-                        Ordering::Less => return Some(Ordering::Less),
-                        Ordering::Equal => continue,
-                        Ordering::Greater => return Some(Ordering::Greater),
-                    }
-                }
-                unreachable!()
-            }
-        });
+        Some(self.cmp(other))
     }
 }
 
 impl Ord for Hand {
     fn cmp(&self, other: &Self) -> Ordering {
-        return match self.get_strength().cmp(&other.get_strength()) {
+        match self.get_strength().cmp(&other.get_strength()) {
             Ordering::Less => Ordering::Less,
             Ordering::Greater => Ordering::Greater,
             Ordering::Equal => {
@@ -206,7 +193,7 @@ impl Ord for Hand {
                 }
                 unreachable!()
             }
-        };
+        }
     }
 }
 
@@ -281,26 +268,13 @@ impl Hand2 {
 
 impl PartialOrd for Hand2 {
     fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
-        return Some(match self.get_strength().cmp(&other.get_strength()) {
-            Ordering::Less => Ordering::Less,
-            Ordering::Greater => Ordering::Greater,
-            Ordering::Equal => {
-                for (self_card, other_card) in self.cards.iter().zip(other.cards.iter()) {
-                    match self_card.cmp(other_card) {
-                        Ordering::Less => return Some(Ordering::Less),
-                        Ordering::Equal => continue,
-                        Ordering::Greater => return Some(Ordering::Greater),
-                    }
-                }
-                unreachable!()
-            }
-        });
+        Some(self.cmp(other))
     }
 }
 
 impl Ord for Hand2 {
     fn cmp(&self, other: &Self) -> Ordering {
-        return match self.get_strength().cmp(&other.get_strength()) {
+        match self.get_strength().cmp(&other.get_strength()) {
             Ordering::Less => Ordering::Less,
             Ordering::Greater => Ordering::Greater,
             Ordering::Equal => {
@@ -313,14 +287,14 @@ impl Ord for Hand2 {
                 }
                 unreachable!()
             }
-        };
+        }
     }
 }
 
 pub fn part_a(input: &str) -> Option<usize> {
     let mut hand_list: Vec<(Hand, usize)> = input
         .lines()
-        .map(|l| l.split_once(" ").unwrap())
+        .map(|l| l.split_once(' ').unwrap())
         .map(|(hand, bid)| (hand, bid.parse().unwrap()))
         .map(|(hand, bid)| {
             (
@@ -345,7 +319,7 @@ pub fn part_a(input: &str) -> Option<usize> {
 pub fn part_b(input: &str) -> Option<usize> {
     let mut hand_list: Vec<(Hand2, usize)> = input
         .lines()
-        .map(|l| l.split_once(" ").unwrap())
+        .map(|l| l.split_once(' ').unwrap())
         .map(|(hand, bid)| (hand, bid.parse().unwrap()))
         .map(|(hand, bid)| {
             (
