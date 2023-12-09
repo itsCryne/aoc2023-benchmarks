@@ -36,14 +36,14 @@ mod tests {{
     use std::fs::read_to_string;
 
     #[test]
-    fn test_day_0{}_part_a() {{
+    fn test_day_{}_part_a() {{
         let input_a = read_to_string("./data/examples/day_{}_a.txt").unwrap();
         let result = part_a(input_a.as_str());
         assert_eq!(result, None);
     }}
 
     #[test]
-    fn test_day_0{}_part_b() {{
+    fn test_day_{}_part_b() {{
         let input_b = read_to_string("./data/examples/day_{}_b.txt").unwrap();
         let result = part_b(input_b.as_str());
         assert_eq!(result, None);

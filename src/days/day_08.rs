@@ -84,14 +84,14 @@ mod tests {
     use std::fs::read_to_string;
 
     #[test]
-    fn test_day_008_part_a() {
+    fn test_day_08_part_a() {
         let input_a = read_to_string("./data/examples/day_08_a.txt").unwrap();
         let result = part_a(input_a.as_str());
         assert_eq!(result, Some(6));
     }
 
     #[test]
-    fn test_day_008_part_b() {
+    fn test_day_08_part_b() {
         let input_b = read_to_string("./data/examples/day_08_b.txt").unwrap();
         let result = part_b(input_b.as_str());
         assert_eq!(result, Some(6));
