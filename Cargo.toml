@@ -28,3 +28,4 @@ aoc-client = "0"
 # Add your own crates here
 regex = "1.10.2"
 num = "0.4.1"
+itertools = "0.12.0"
