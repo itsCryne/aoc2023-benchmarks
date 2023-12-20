@@ -1,7 +1,7 @@
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 struct Workflow {
     name: String,
-    steps: Vec<WorkflowStep>
+    steps: Vec<WorkflowStep>,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
@@ -9,7 +9,7 @@ struct ConditionalWorkflowStep {
     category: Category,
     comparison: Comparison,
     value: u32,
-    send_to_workflow: String
+    send_to_workflow: String,
 }
 
 impl WorkflowStep {
@@ -35,9 +35,7 @@ impl WorkflowStep {
                     None
                 }
             }
-            WorkflowStep::Unconditional(u) => {
-                Some(u.to_string()) 
-            }
+            WorkflowStep::Unconditional(u) => Some(u.to_string()),
         }
     }
 }
@@ -45,13 +43,13 @@ impl WorkflowStep {
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 enum WorkflowStep {
     Conditional(ConditionalWorkflowStep),
-    Unconditional(String)
+    Unconditional(String),
 }
 
 #[derive(Debug, Copy, Clone, PartialEq, Eq, Hash)]
 enum Comparison {
     Greater,
-    Lesser
+    Lesser,
 }
 
 #[derive(Debug, Copy, Clone, PartialEq, Eq, Hash)]
@@ -59,16 +57,15 @@ enum Category {
     X,
     M,
     A,
-    S
+    S,
 }
-
 
 #[derive(Debug, Copy, Clone, PartialEq, Eq, Hash)]
 struct Part {
     x: u32,
     m: u32,
     a: u32,
-    s: u32
+    s: u32,
 }
 
 pub fn part_a(input: &str) -> Option<u32> {
@@ -81,21 +78,25 @@ pub fn part_a(input: &str) -> Option<u32> {
         let mut step_list = vec![];
         for step in steps {
             if step.contains(':') {
-                let (comparison, cmp_symbol) = if step.contains('<') { (Comparison::Lesser, "<") } else { (Comparison::Greater, ">") };
+                let (comparison, cmp_symbol) = if step.contains('<') {
+                    (Comparison::Lesser, "<")
+                } else {
+                    (Comparison::Greater, ">")
+                };
                 let (category_string, rest) = step.split_once(cmp_symbol).unwrap();
                 let category = match category_string {
                     "x" => Category::X,
                     "m" => Category::M,
                     "a" => Category::A,
                     "s" => Category::S,
-                    _ => unreachable!()
+                    _ => unreachable!(),
                 };
                 let (value_string, next_workflow) = rest.split_once(':').unwrap();
                 let step = ConditionalWorkflowStep {
                     category,
                     comparison,
-                    value: u32::from_str_radix(value_string, 10).unwrap(),
-                    send_to_workflow: next_workflow.to_string()
+                    value: value_string.parse().unwrap(),
+                    send_to_workflow: next_workflow.to_string(),
                 };
 
                 step_list.push(WorkflowStep::Conditional(step));
@@ -105,7 +106,7 @@ pub fn part_a(input: &str) -> Option<u32> {
         }
         let workflow = Workflow {
             name: name.to_string(),
-            steps: step_list
+            steps: step_list,
         };
         workflows.push(workflow)
     }
@@ -113,7 +114,10 @@ pub fn part_a(input: &str) -> Option<u32> {
     let mut parts = vec![];
     for part in parts_string.lines() {
         let stripped_part = part.strip_prefix('{').unwrap().strip_suffix('}').unwrap();
-        let attributes = stripped_part.split(',').map(|attr| u32::from_str_radix(attr.split_once('=').unwrap().1, 10).unwrap()).collect::<Vec<_>>();
+        let attributes = stripped_part
+            .split(',')
+            .map(|attr| attr.split_once('=').unwrap().1.parse().unwrap())
+            .collect::<Vec<_>>();
 
         parts.push(Part {
             x: attributes[0],
@@ -123,27 +127,31 @@ pub fn part_a(input: &str) -> Option<u32> {
         });
     }
 
-
     let mut sum = 0;
     for part in parts {
-        let mut current_workflow_name = String::from("in"); 
+        let mut current_workflow_name = String::from("in");
 
         while !["A", "R"].contains(&current_workflow_name.as_str()) {
-            let current_workflow = workflows.iter().find(|w| w.name == current_workflow_name).unwrap();
-            current_workflow_name = current_workflow.steps.iter().find_map(|step| {
-                step.get_next_workflow(&part)
-            }).unwrap();
+            let current_workflow = workflows
+                .iter()
+                .find(|w| w.name == current_workflow_name)
+                .unwrap();
+            current_workflow_name = current_workflow
+                .steps
+                .iter()
+                .find_map(|step| step.get_next_workflow(&part))
+                .unwrap();
         }
 
         if current_workflow_name == "A" {
-            sum += part.x + part.m + part.a + part.s; 
+            sum += part.x + part.m + part.a + part.s;
         }
     }
 
     Some(sum)
 }
 
-pub fn part_b(_input: &str) -> Option<u64>  {
+pub fn part_b(_input: &str) -> Option<u64> {
     None
 }
 

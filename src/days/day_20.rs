@@ -1,6 +1,6 @@
 use std::collections::VecDeque;
-use std::{rc::Rc, cell::RefCell};
 use std::ops::Not;
+use std::{cell::RefCell, rc::Rc};
 
 trait Module: std::fmt::Debug {
     fn process_pulse(&mut self, pulse: Pulse);
@@ -15,36 +15,40 @@ trait Module: std::fmt::Debug {
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 enum ModuleType {
-    BROADCAST,
-    FLIPFLOP,
-    CONJUNCTION,
-    SINK
+    Broadcast,
+    Flipflop,
+    Conjunction,
+    Sink,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 enum Pulse {
-    LOW,
-    HIGH
+    Low,
+    High,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 enum State {
-    ON,
-    OFF
+    On,
+    Off,
 }
 
 impl Not for State {
     type Output = Self;
     fn not(self) -> Self::Output {
-        if self == State::ON { State::OFF } else { State::ON } 
+        if self == State::On {
+            State::Off
+        } else {
+            State::On
+        }
     }
 }
 
 impl From<State> for Pulse {
     fn from(value: State) -> Self {
         match value {
-            State::ON => Pulse::HIGH,
-            State::OFF => Pulse::LOW
+            State::On => Pulse::High,
+            State::Off => Pulse::Low,
         }
     }
 }
@@ -54,7 +58,7 @@ struct FlipFlop {
     should_propagate: bool,
     name: String,
     state: State,
-    child_modules: Vec<Rc<RefCell<dyn Module>>>
+    child_modules: Vec<Rc<RefCell<dyn Module>>>,
 }
 
 #[derive(Debug, Clone)]
@@ -62,7 +66,7 @@ struct Conjunction {
     name: String,
     state: State,
     child_modules: Vec<Rc<RefCell<dyn Module>>>,
-    parent_modules: Vec<Rc<RefCell<dyn Module>>>
+    parent_modules: Vec<Rc<RefCell<dyn Module>>>,
 }
 
 #[derive(Debug, Clone)]
@@ -72,29 +76,29 @@ struct Broadcast {
 
 #[derive(Debug, Clone)]
 struct Sink {
-    name: String
+    name: String,
 }
 
 impl Module for Broadcast {
     fn process_pulse(&mut self, _pulse: Pulse) {
-        panic!("Cannot update the broadcast module") 
+        panic!("Cannot update the broadcast module")
     }
 
-    fn send_pulses(&self) -> Vec<(Pulse, Rc<RefCell<dyn Module>>)>{
+    fn send_pulses(&self) -> Vec<(Pulse, Rc<RefCell<dyn Module>>)> {
         let mut receivers = Vec::new();
         for child in self.child_modules.iter() {
             // println!("broadcast -OFF-> {}", child.borrow().get_name());
-            receivers.push((State::OFF.into(), child.clone()));
+            receivers.push((State::Off.into(), child.clone()));
         }
         receivers
     }
 
     fn get_state(&self) -> State {
-        State::OFF
+        State::Off
     }
-    
+
     fn get_name(&self) -> String {
-        String::from("broadcaster") 
+        String::from("broadcaster")
     }
 
     fn add_child(&mut self, child: Rc<RefCell<dyn Module>>) {
@@ -108,7 +112,7 @@ impl Module for Broadcast {
     }
 
     fn get_module_type(&self) -> ModuleType {
-        ModuleType::BROADCAST
+        ModuleType::Broadcast
     }
 }
 
@@ -130,7 +134,7 @@ impl Module for Sink {
     }
 
     fn send_pulses(&self) -> Vec<(Pulse, Rc<RefCell<dyn Module>>)> {
-        Vec::new() 
+        Vec::new()
     }
 
     fn get_children(&self) -> &Vec<Rc<RefCell<dyn Module>>> {
@@ -140,24 +144,22 @@ impl Module for Sink {
     fn process_pulse(&mut self, _pulse: Pulse) {}
 
     fn get_module_type(&self) -> ModuleType {
-        ModuleType::SINK
+        ModuleType::Sink
     }
 }
 
 impl Module for FlipFlop {
     fn process_pulse(&mut self, pulse: Pulse) {
         match pulse {
-            Pulse::LOW => {
+            Pulse::Low => {
                 self.state = !self.state;
                 self.should_propagate = true;
             }
-            Pulse::HIGH => {
-                self.should_propagate = false
-            }
+            Pulse::High => self.should_propagate = false,
         }
     }
 
-    fn send_pulses(&self) -> Vec<(Pulse, Rc<RefCell<dyn Module>>)>{
+    fn send_pulses(&self) -> Vec<(Pulse, Rc<RefCell<dyn Module>>)> {
         let mut receivers = Vec::new();
         if self.should_propagate {
             for child in self.child_modules.iter() {
@@ -187,21 +189,25 @@ impl Module for FlipFlop {
     }
 
     fn get_module_type(&self) -> ModuleType {
-        ModuleType::FLIPFLOP 
+        ModuleType::Flipflop
     }
 }
 
 impl Module for Conjunction {
     fn process_pulse(&mut self, _pulse: Pulse) {
-        if self.parent_modules.iter().all(|parent| parent.borrow().get_state() == State::ON ) {
-            self.state = State::OFF
+        if self
+            .parent_modules
+            .iter()
+            .all(|parent| parent.borrow().get_state() == State::On)
+        {
+            self.state = State::Off
         } else {
-            self.state = State::ON
+            self.state = State::On
         }
     }
 
     fn send_pulses(&self) -> Vec<(Pulse, Rc<RefCell<dyn Module>>)> {
-        let mut receivers = Vec::new(); 
+        let mut receivers = Vec::new();
         for child in self.child_modules.iter() {
             // println!("{} -{:?}-> {}", self.name, self.state, child.borrow().get_name());
             receivers.push((self.state.into(), child.clone()));
@@ -212,7 +218,7 @@ impl Module for Conjunction {
     fn get_state(&self) -> State {
         self.state
     }
-    
+
     fn get_name(&self) -> String {
         self.name.clone()
     }
@@ -222,7 +228,7 @@ impl Module for Conjunction {
     }
 
     fn add_parent(&mut self, parent: Rc<RefCell<dyn Module>>) {
-        self.parent_modules.push(parent); 
+        self.parent_modules.push(parent);
     }
 
     fn get_children(&self) -> &Vec<Rc<RefCell<dyn Module>>> {
@@ -230,7 +236,7 @@ impl Module for Conjunction {
     }
 
     fn get_module_type(&self) -> ModuleType {
-        ModuleType::CONJUNCTION
+        ModuleType::Conjunction
     }
 }
 
@@ -242,27 +248,21 @@ pub fn part_a(input: &str) -> Option<u64> {
         let (description, _) = line.split_once(" -> ").unwrap();
 
         let module = match line.chars().next().unwrap() {
-            '%' => {
-                Rc::new(RefCell::new(FlipFlop {
-                    should_propagate: true,
-                    name: description.strip_prefix("%").unwrap().to_string(),
-                    state: State::OFF,
-                    child_modules: Vec::new()
-                })) as _
-            }
-            '&' => {
-                Rc::new(RefCell::new(Conjunction {
-                    name: description.strip_prefix("&").unwrap().to_string(),
-                    state: State::OFF,
-                    child_modules: Vec::new(),
-                    parent_modules: Vec::new()
-                })) as _
-            }
-            _ => {
-                Rc::new(RefCell::new(Broadcast {
-                    child_modules: Vec::new()
-                })) as _
-            } 
+            '%' => Rc::new(RefCell::new(FlipFlop {
+                should_propagate: true,
+                name: description.strip_prefix('%').unwrap().to_string(),
+                state: State::Off,
+                child_modules: Vec::new(),
+            })) as _,
+            '&' => Rc::new(RefCell::new(Conjunction {
+                name: description.strip_prefix('&').unwrap().to_string(),
+                state: State::Off,
+                child_modules: Vec::new(),
+                parent_modules: Vec::new(),
+            })) as _,
+            _ => Rc::new(RefCell::new(Broadcast {
+                child_modules: Vec::new(),
+            })) as _,
         };
 
         modules.push(module);
@@ -270,26 +270,40 @@ pub fn part_a(input: &str) -> Option<u64> {
 
     for line in lines {
         let (description, children) = line.split_once(" -> ").unwrap();
-        let name = description.strip_prefix("%").or(description.strip_prefix("&")).unwrap_or(description);
-     
-        let current_module = modules.iter().find(|module| module.borrow().get_name() == name.to_string()).unwrap().clone();
+        let name = description
+            .strip_prefix('%')
+            .or(description.strip_prefix('&'))
+            .unwrap_or(description);
+
+        let current_module = modules
+            .iter()
+            .find(|module| module.borrow().get_name() == *name)
+            .unwrap()
+            .clone();
 
         for child_name in children.split(", ") {
-            if let Some(child) = modules.iter().find(|module| module.borrow().get_name() == child_name.to_string()) {
+            if let Some(child) = modules
+                .iter()
+                .find(|module| module.borrow().get_name() == *child_name)
+            {
                 current_module.borrow_mut().add_child(child.clone());
                 child.borrow_mut().add_parent(current_module.clone());
             } else {
                 let sink = Rc::new(RefCell::new(Sink {
-                    name: child_name.to_string()
+                    name: child_name.to_string(),
                 }));
-                
+
                 current_module.borrow_mut().add_child(sink.clone());
                 modules.push(sink);
             }
         }
     }
 
-    let broadcaster = modules.iter().find(|module| module.borrow().get_name() == "broadcaster".to_string()).unwrap().clone(); 
+    let broadcaster = modules
+        .iter()
+        .find(|module| module.borrow().get_name() == *"broadcaster")
+        .unwrap()
+        .clone();
     let mut pulse_queue = VecDeque::new();
 
     let n = 1000;
@@ -301,7 +315,11 @@ pub fn part_a(input: &str) -> Option<u64> {
             pulse_queue.push_back(pulse);
         }
         while let Some(next_pulse) = pulse_queue.pop_front() {
-            if next_pulse.0 == Pulse::HIGH { high_pulses += 1 } else { low_pulses += 1 };
+            if next_pulse.0 == Pulse::High {
+                high_pulses += 1
+            } else {
+                low_pulses += 1
+            };
             next_pulse.1.borrow_mut().process_pulse(next_pulse.0);
             for pulse in next_pulse.1.borrow().send_pulses() {
                 pulse_queue.push_back(pulse);
